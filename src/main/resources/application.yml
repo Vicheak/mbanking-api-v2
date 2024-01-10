@@ -1,0 +1,15 @@
+# configure server port
+server:
+  port: 8080
+
+# configure data source and jpa
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: mbankingpostgres
+    password: mbankingpostgres@123
+    url: jdbc:postgresql://localhost:5432/mbankingdb
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop

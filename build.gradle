@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.vicheak'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 
 java {
     sourceCompatibility = '17'
@@ -22,13 +22,26 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    //for Hibernate validator
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
+
+    //for Spring Data JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    //for PostgreSQL driver
     runtimeOnly 'org.postgresql:postgresql'
+
+    //for Lombok processor
+    compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    //for Thymeleaf template engine
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    //for REST API
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    //for Junit and Mockito
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
