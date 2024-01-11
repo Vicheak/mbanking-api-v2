@@ -55,7 +55,7 @@ public class User {
     @Column(name = "user_is_deleted", nullable = false)
     private Boolean isDeleted;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<UserRole> userRoles;
 
 }
