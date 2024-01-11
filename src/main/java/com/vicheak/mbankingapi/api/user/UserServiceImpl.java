@@ -3,6 +3,7 @@ package com.vicheak.mbankingapi.api.user;
 import com.vicheak.mbankingapi.api.authority.Role;
 import com.vicheak.mbankingapi.api.authority.RoleRepository;
 import com.vicheak.mbankingapi.api.user.web.CreateUserDto;
+import com.vicheak.mbankingapi.api.user.web.UpdateUserDto;
 import com.vicheak.mbankingapi.api.user.web.UserDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -55,12 +53,7 @@ public class UserServiceImpl implements UserService {
                     "Student card number conflicts resources in the system!");
 
         //check if all roles are valid roles in the system
-        boolean isMatched = createUserDto.roleIds().stream()
-                .allMatch(roleRepository::existsById);
-
-        if (!isMatched)
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Role is not valid in the system!");
+        checkValidRoles(createUserDto.roleIds());
 
         User newUser = userMapper.fromCreateUserDtoToUser(createUserDto);
         newUser.setUuid(UUID.randomUUID().toString());
@@ -70,20 +63,94 @@ public class UserServiceImpl implements UserService {
         userRepository.save(newUser);
 
         //set up user roles
-        List<UserRole> userRoles = new ArrayList<>();
-
-        createUserDto.roleIds().forEach(roleId ->
-                userRoles.add(UserRole.builder()
-                        .user(newUser)
-                        .role(Role.builder().id(roleId).build())
-                        .build()));
-
-        userRoleRepository.saveAll(userRoles);
+        setUpUserRoles(createUserDto.roleIds(), newUser);
     }
 
     @Override
     public List<UserDto> loadAllUsers() {
         return userMapper.fromUserToUserDto(userRepository.findAllByIsDeleted(false));
+    }
+
+    @Override
+    public UserDto loadUserByUuid(String uuid) {
+        return userMapper.fromUserToUserDto(userRepository.findByUuid(uuid)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "User with uuid, %s has not been found in the system!"
+                                        .formatted(uuid))
+                ));
+    }
+
+    @Transactional
+    @Override
+    public void updateUserByUuid(String uuid, UpdateUserDto updateUserDto) {
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "User with uuid, %s has not been found in the system!"
+                                        .formatted(uuid))
+                );
+
+        //check if all roles are valid roles in the system
+        checkValidRoles(updateUserDto.roleIds());
+
+        userMapper.fromUpdateUserDtoToUser(user, updateUserDto);
+
+        userRepository.save(user);
+
+        userRoleRepository.deleteAll(user.getUserRoles());
+
+        //set up user roles
+        setUpUserRoles(updateUserDto.roleIds(), user);
+    }
+
+    @Transactional
+    @Override
+    public void disableUserByUuid(String uuid) {
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "User with uuid, %s has not been found in the system!"
+                                        .formatted(uuid))
+                );
+
+        user.setIsDeleted(true);
+
+        userRepository.save(user);
+    }
+
+    @Transactional
+    @Override
+    public void deleteUserByUuid(String uuid) {
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "User with uuid, %s has not been found in the system!"
+                                        .formatted(uuid))
+                );
+
+        userRepository.delete(user);
+    }
+
+    private void checkValidRoles(Set<Integer> roleIds){
+        boolean isMatched = roleIds.stream()
+                .allMatch(roleRepository::existsById);
+
+        if (!isMatched)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Role is not valid in the system!");
+    }
+
+    private void setUpUserRoles(Set<Integer> roleIds, User user){
+        List<UserRole> userRoles = new ArrayList<>();
+
+        roleIds.forEach(roleId ->
+                userRoles.add(UserRole.builder()
+                        .user(user)
+                        .role(Role.builder().id(roleId).build())
+                        .build()));
+
+        userRoleRepository.saveAll(userRoles);
     }
 
 }
