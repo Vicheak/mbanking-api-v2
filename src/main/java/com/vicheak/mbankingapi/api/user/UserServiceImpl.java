@@ -25,40 +25,14 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void createNewUser(CreateUserDto createUserDto) {
-        //check if username already exists
-        if (userRepository.existsByUsernameIgnoreCase(createUserDto.username()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Username conflicts resources in the system!");
-
-        //check if email already exists
-        if (userRepository.existsByEmailIgnoreCase(createUserDto.email()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Email conflicts resources in the system!");
-
-        //check if phone number already exists
-        if (userRepository.existsByPhoneNumberIgnoreCase(createUserDto.phoneNumber()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Phone number conflicts resources in the system!");
-
-        //check if one signal id already exists
-        if (Objects.nonNull(createUserDto.oneSignalId()) &&
-                userRepository.existsByOneSignalIdIgnoreCase(createUserDto.oneSignalId()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "One signal ID conflicts resources in the system!");
-
-        //check if student card number already exists
-        if (Objects.nonNull(createUserDto.studentCardNo()) &&
-                userRepository.existsByStudentCardNoIgnoreCase(createUserDto.studentCardNo()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Student card number conflicts resources in the system!");
+        //check user validation
+        checkUserValidation(createUserDto);
 
         //check if all roles are valid roles in the system
         checkValidRoles(createUserDto.roleIds());
 
-        User newUser = userMapper.fromCreateUserDtoToUser(createUserDto);
-        newUser.setUuid(UUID.randomUUID().toString());
-        newUser.setIsVerified(true);
-        newUser.setIsDeleted(false);
+        //set up new user
+        User newUser = setupUser(createUserDto);
 
         userRepository.save(newUser);
 
@@ -132,7 +106,7 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
     }
 
-    private void checkValidRoles(Set<Integer> roleIds){
+    public void checkValidRoles(Set<Integer> roleIds) {
         boolean isMatched = roleIds.stream()
                 .allMatch(roleRepository::existsById);
 
@@ -141,7 +115,7 @@ public class UserServiceImpl implements UserService {
                     "Role is not valid in the system!");
     }
 
-    private void setUpUserRoles(Set<Integer> roleIds, User user){
+    public void setUpUserRoles(Set<Integer> roleIds, User user) {
         List<UserRole> userRoles = new ArrayList<>();
 
         roleIds.forEach(roleId ->
@@ -151,6 +125,43 @@ public class UserServiceImpl implements UserService {
                         .build()));
 
         userRoleRepository.saveAll(userRoles);
+    }
+
+    public void checkUserValidation(CreateUserDto createUserDto) {
+        //check if username already exists
+        if (userRepository.existsByUsernameIgnoreCase(createUserDto.username()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Username conflicts resources in the system!");
+
+        //check if email already exists
+        if (userRepository.existsByEmailIgnoreCase(createUserDto.email()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Email conflicts resources in the system!");
+
+        //check if phone number already exists
+        if (userRepository.existsByPhoneNumberIgnoreCase(createUserDto.phoneNumber()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Phone number conflicts resources in the system!");
+
+        //check if one signal id already exists
+        if (Objects.nonNull(createUserDto.oneSignalId()) &&
+                userRepository.existsByOneSignalIdIgnoreCase(createUserDto.oneSignalId()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "One signal ID conflicts resources in the system!");
+
+        //check if student card number already exists
+        if (Objects.nonNull(createUserDto.studentCardNo()) &&
+                userRepository.existsByStudentCardNoIgnoreCase(createUserDto.studentCardNo()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Student card number conflicts resources in the system!");
+    }
+
+    public User setupUser(CreateUserDto createUserDto) {
+        User newUser = userMapper.fromCreateUserDtoToUser(createUserDto);
+        newUser.setUuid(UUID.randomUUID().toString());
+        newUser.setIsVerified(true);
+        newUser.setIsDeleted(false);
+        return newUser;
     }
 
 }

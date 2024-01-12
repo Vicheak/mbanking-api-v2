@@ -13,3 +13,16 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
+
+# configure spring mail
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: suonvicheak991@gmail.com
+    password: ceno lwln bgvw jujv
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
