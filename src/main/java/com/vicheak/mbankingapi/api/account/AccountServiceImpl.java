@@ -1,7 +1,9 @@
 package com.vicheak.mbankingapi.api.account;
 
+import com.vicheak.mbankingapi.api.account.web.AccountDto;
 import com.vicheak.mbankingapi.api.account.web.CreateAccountDto;
 import com.vicheak.mbankingapi.api.account.web.RenameAccountDto;
+import com.vicheak.mbankingapi.api.account.web.TransferLimitAccountDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -54,6 +57,37 @@ public class AccountServiceImpl implements AccountService {
         account.setName(renameAccountDto.renameTo());
 
         accountRepository.save(account);
+    }
+
+    @Transactional
+    @Override
+    public void updateTransferLimitByUuid(String uuid, TransferLimitAccountDto transferLimitAccountDto) {
+        //load account by uuid
+        Account account = accountRepository.queryAccountByNumber(uuid)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Account with uuid, %s has not been found in the system!"
+                                        .formatted(uuid))
+                );
+
+        account.setTransferLimit(transferLimitAccountDto.transferLimit());
+
+        accountRepository.save(account);
+    }
+
+    @Override
+    public List<AccountDto> loadAllAccounts() {
+        return accountMapper.fromAccountToAccountDto(accountRepository.findAll());
+    }
+
+    @Override
+    public AccountDto loadAccountByUuid(String uuid) {
+        return accountMapper.fromAccountToAccountDto(accountRepository.queryAccountByNumber(uuid)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Account with uuid, %s has not been found in the system!"
+                                        .formatted(uuid))
+                ));
     }
 
     private void setUpTransferLimit(Account account) {
