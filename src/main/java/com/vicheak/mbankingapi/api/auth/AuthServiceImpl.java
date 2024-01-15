@@ -1,18 +1,21 @@
 package com.vicheak.mbankingapi.api.auth;
 
 import com.vicheak.mbankingapi.api.auth.web.RegisterDto;
+import com.vicheak.mbankingapi.api.auth.web.SendVerifyDto;
+import com.vicheak.mbankingapi.api.auth.web.VerifyDto;
+import com.vicheak.mbankingapi.api.mail.Mail;
+import com.vicheak.mbankingapi.api.mail.MailService;
 import com.vicheak.mbankingapi.api.user.User;
 import com.vicheak.mbankingapi.api.user.UserServiceImpl;
 import com.vicheak.mbankingapi.api.user.web.CreateUserDto;
 import com.vicheak.mbankingapi.util.RandomUtil;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Set;
 
@@ -23,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthRepository authRepository;
     private final AuthMapper authMapper;
     private final UserServiceImpl userService;
-    private final JavaMailSender javaMailSender;
+    private final MailService mailService;
 
     @Value("${spring.mail.username}")
     private String adminMail;
@@ -54,17 +57,54 @@ public class AuthServiceImpl implements AuthService {
         //update random six-digit verification code for the new user
         authRepository.updateVerificationCode(newUser.getEmail(), sixDigitCode);
 
-        //send mail to mail box
-        //build mime message object
-        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-        messageHelper.setSubject("Email Verification");
-        messageHelper.setFrom(adminMail);
-        messageHelper.setTo(newUser.getEmail());
-        messageHelper.setText("<h1>Please copy this verification code to verify your account : %s</h1>"
-                .formatted(sixDigitCode), true);
+        //send mail to mailbox
+        buildMail(newUser.getEmail(), sixDigitCode);
+    }
 
-        javaMailSender.send(mimeMessage);
+    @Transactional
+    @Override
+    public void sendVerification(SendVerifyDto sendVerifyDto) throws MessagingException {
+        //generate random six-digit verification code
+        String sixDigitCode = RandomUtil.getRandomSixDigit();
+
+        //update random six-digit verification code for the new user
+        authRepository.updateVerificationCode(sendVerifyDto.email(), sixDigitCode);
+
+        //send mail to mailbox
+        buildMail(sendVerifyDto.email(), sixDigitCode);
+    }
+
+    @Transactional
+    @Override
+    public void verify(VerifyDto verifyDto) {
+        //check if the account is already verified
+        if (authRepository.existsByEmailAndIsVerifiedTrue(verifyDto.email()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Your account is already verified!");
+
+        //load the verified account
+        User toVerifiedUser = authRepository.findByEmailAndVerifiedCodeAndIsDeletedFalse(
+                        verifyDto.email(), verifyDto.verificationCode())
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "Email verification has been failed!")
+                );
+
+        toVerifiedUser.setIsVerified(true);
+        toVerifiedUser.setVerifiedCode(null);
+
+        authRepository.save(toVerifiedUser);
+    }
+
+    private void buildMail(String email, String sixDigitCode) throws MessagingException {
+        Mail<String> mail = new Mail<>();
+        mail.setSubject("Email Verification");
+        mail.setSender(adminMail);
+        mail.setReceiver(email);
+        mail.setText("<h1>Please copy this verification code to verify your account : %s</h1>");
+        mail.setMetaData(sixDigitCode);
+
+        mailService.sendMail(mail);
     }
 
 }
