@@ -30,4 +30,30 @@ public class AuthController {
                 .build();
     }
 
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/send-verification")
+    public BaseApi<?> sendVerification(@RequestBody @Valid SendVerifyDto sendVerifyDto) throws MessagingException {
+        authService.sendVerification(sendVerifyDto);
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("Send verification email successfully!")
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload("Please check your email for verification code!")
+                .build();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/verify")
+    public BaseApi<?> verify(@RequestBody @Valid VerifyDto verifyDto) {
+        authService.verify(verifyDto);
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("Email verification has been done successfully!")
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload("Now you can use your account to login!")
+                .build();
+    }
+
 }
