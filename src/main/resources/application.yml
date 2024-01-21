@@ -26,3 +26,9 @@ spring:
           auth: true
           starttls:
             enable: true
+
+# configure spring security
+  security:
+    user:
+      name: admin
+      password: admin@123
