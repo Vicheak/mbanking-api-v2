@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 
 @Builder
 public record BaseApi<T>(Boolean isSuccess,
-                      String message,
-                      Integer code,
-                      LocalDateTime timestamp,
-                      T payload) {
+                         String message,
+                         Integer code,
+                         LocalDateTime timestamp,
+                         T payload) {
 }

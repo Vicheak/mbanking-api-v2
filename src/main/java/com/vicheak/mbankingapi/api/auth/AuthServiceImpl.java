@@ -1,5 +1,6 @@
 package com.vicheak.mbankingapi.api.auth;
 
+import com.vicheak.mbankingapi.api.auth.web.ChangePasswordDto;
 import com.vicheak.mbankingapi.api.auth.web.RegisterDto;
 import com.vicheak.mbankingapi.api.auth.web.SendVerifyDto;
 import com.vicheak.mbankingapi.api.auth.web.VerifyDto;
@@ -94,6 +95,23 @@ public class AuthServiceImpl implements AuthService {
         toVerifiedUser.setVerifiedCode(null);
 
         authRepository.save(toVerifiedUser);
+    }
+
+    @Transactional
+    @Override
+    public void changePassword(ChangePasswordDto changePasswordDto) {
+        //check if the email and password are both valid
+        User authenticatedUser = authRepository.findByEmailAndPassword(
+                        changePasswordDto.email(), changePasswordDto.oldPassword())
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                                "Failed to change account password!")
+                );
+
+        authenticatedUser.setPassword(changePasswordDto.newPassword());
+
+        //save account into database
+        authRepository.save(authenticatedUser);
     }
 
     private void buildMail(String email, String sixDigitCode) throws MessagingException {

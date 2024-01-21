@@ -56,4 +56,17 @@ public class AuthController {
                 .build();
     }
 
+    @ResponseStatus(HttpStatus.OK)
+    @PutMapping("/change-password")
+    public BaseApi<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto){
+        authService.changePassword(changePasswordDto);
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("Your password has been changed successfully!")
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload("Now you can use your password to login!")
+                .build();
+    }
+
 }

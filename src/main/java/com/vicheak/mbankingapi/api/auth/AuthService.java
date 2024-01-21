@@ -1,5 +1,6 @@
 package com.vicheak.mbankingapi.api.auth;
 
+import com.vicheak.mbankingapi.api.auth.web.ChangePasswordDto;
 import com.vicheak.mbankingapi.api.auth.web.RegisterDto;
 import com.vicheak.mbankingapi.api.auth.web.SendVerifyDto;
 import com.vicheak.mbankingapi.api.auth.web.VerifyDto;
@@ -24,5 +25,11 @@ public interface AuthService {
      * @param verifyDto is the request from client
      */
     void verify(VerifyDto verifyDto);
+
+    /**
+     * This method is used to change user password by specifying the previous password
+     * @param changePasswordDto is the request from client
+     */
+    void changePassword(ChangePasswordDto changePasswordDto);
 
 }
