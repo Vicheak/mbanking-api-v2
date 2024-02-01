@@ -17,7 +17,6 @@ public class DataInit {
 
     private final AuthorityRepository authorityRepository;
     private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
 
     //@PostConstruct
     public void init() {

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class ServiceException {
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<?> handleServiceException(ResponseStatusException ex){
+    public ResponseEntity<?> handleServiceException(ResponseStatusException ex) {
         return new ResponseEntity<>(BaseError.builder()
                 .status(false)
                 .message("Something went wrong!")

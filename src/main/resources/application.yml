@@ -1,6 +1,6 @@
 # configure server port
 server:
-  port: 8080
+  port: 9090
 
 # configure data source and jpa
 spring:
@@ -28,7 +28,7 @@ spring:
             enable: true
 
 # configure spring security
-  security:
-    user:
-      name: admin
-      password: admin@123
+#  security:
+#    user:
+#      name: admin
+#      password: admin@123
