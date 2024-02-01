@@ -65,6 +65,12 @@ public class UserServiceImpl implements UserService {
                                         .formatted(uuid))
                 );
 
+        //check if username conflicts resources in the system
+        if(!updateUserDto.username().equalsIgnoreCase(user.getUsername()))
+            if(userRepository.existsByUsernameIgnoreCase(updateUserDto.username()))
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Username conflicts resources in the system!");
+
         //check if all roles are valid roles in the system
         checkValidRoles(updateUserDto.roleIds());
 
