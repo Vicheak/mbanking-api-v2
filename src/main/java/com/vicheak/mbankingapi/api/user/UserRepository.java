@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUuid(String uuid);
 
+    Optional<User> findByUsernameAndIsVerifiedTrueAndIsDeletedFalse(String username);
+
 }

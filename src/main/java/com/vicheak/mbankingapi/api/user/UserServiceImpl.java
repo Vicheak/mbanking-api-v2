@@ -8,6 +8,7 @@ import com.vicheak.mbankingapi.api.user.web.UserDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -21,6 +22,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     @Override
@@ -58,6 +60,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void updateUserByUuid(String uuid, UpdateUserDto updateUserDto) {
+        //update checking security context
+
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -165,6 +169,8 @@ public class UserServiceImpl implements UserService {
     public User setupUser(CreateUserDto createUserDto) {
         User newUser = userMapper.fromCreateUserDtoToUser(createUserDto);
         newUser.setUuid(UUID.randomUUID().toString());
+        //encrypt user password
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
         newUser.setIsVerified(true);
         newUser.setIsDeleted(false);
         return newUser;

@@ -4,7 +4,6 @@ import com.vicheak.mbankingapi.api.authority.Authority;
 import com.vicheak.mbankingapi.api.authority.AuthorityRepository;
 import com.vicheak.mbankingapi.api.authority.Role;
 import com.vicheak.mbankingapi.api.authority.RoleRepository;
-import com.vicheak.mbankingapi.api.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +34,10 @@ public class DataInit {
 
         Authority userDelete = Authority.builder()
                 .name("user:delete")
+                .build();
+
+        Authority userProfile = Authority.builder()
+                .name("user:profile")
                 .build();
 
         Authority accountRead = Authority.builder()
@@ -71,17 +74,17 @@ public class DataInit {
 
         //roles_authorities
         Set<Authority> fullAuthorities = Set.of(
-                userRead, userWrite, userUpdate, userDelete,
+                userRead, userWrite, userUpdate, userDelete, userProfile,
                 accountRead, accountWrite, accountUpdate, accountDelete,
                 transactionRead, transactionWrite, transactionUpdate, transactionDelete);
 
         Set<Authority> managerAuthorities = Set.of(
-                userRead, userUpdate, userDelete,
+                userRead, userUpdate, userDelete, userProfile,
                 accountRead, accountUpdate, accountDelete,
                 transactionRead, transactionUpdate, transactionDelete);
 
         Set<Authority> customerAuthorities = Set.of(
-                userRead, userWrite, userUpdate,
+                userUpdate, userProfile,
                 accountRead, accountWrite, accountUpdate,
                 transactionRead, transactionWrite);
 
