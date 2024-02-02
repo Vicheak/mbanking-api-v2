@@ -1,18 +1,19 @@
 package com.vicheak.mbankingapi.security;
 
+import com.vicheak.mbankingapi.security.authorityconfig.UserAuth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -21,34 +22,33 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final PasswordEncoder passwordEncoder;
+    private final UserDetailsService userDetailsService;
 
     @Bean
-    public UserDetailsManager userDetailsManagerConfig() {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-
-        UserDetails adminUser = User.withUsername("admin")
-                .password(passwordEncoder.encode("admin@123"))
-                .build();
-
-        UserDetails managerUser = User.withUsername("manager")
-                .password(passwordEncoder.encode("manager@123"))
-                .build();
-
-        UserDetails customerUser = User.withUsername("customer")
-                .password(passwordEncoder.encode("customer@123"))
-                .build();
-
-        manager.createUser(adminUser);
-        manager.createUser(managerUser);
-        manager.createUser(customerUser);
-
-        return manager;
+    public AuthenticationProvider authenticationProviderConfig() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
+        return authenticationProvider;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChainConfig(HttpSecurity http) throws Exception {
         //customize security filter here
         http.authorizeHttpRequests(auth -> {
+
+            //user security
+            auth.requestMatchers(HttpMethod.GET, "/api/v1/users/**")
+                    .hasAuthority(UserAuth.USER_READ.getName());
+
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/users/**")
+                    .hasAuthority(UserAuth.USER_WRITE.getName());
+
+            auth.requestMatchers(HttpMethod.PUT, "/api/v1/users/**")
+                    .hasAuthority(UserAuth.USER_UPDATE.getName());
+
+            auth.requestMatchers(HttpMethod.DELETE, "/api/v1/users/**")
+                    .hasAuthority(UserAuth.USER_DELETE.getName());
 
             auth.anyRequest().authenticated();
         });
