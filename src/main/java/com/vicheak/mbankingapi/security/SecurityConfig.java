@@ -36,6 +36,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChainConfig(HttpSecurity http) throws Exception {
         //customize security filter here
         http.authorizeHttpRequests(auth -> {
+            //welcome page
+            auth.requestMatchers("/").permitAll();
 
             //user security
             auth.requestMatchers(HttpMethod.GET, "/api/v1/users/**")
