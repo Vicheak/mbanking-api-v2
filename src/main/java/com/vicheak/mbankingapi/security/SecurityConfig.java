@@ -36,8 +36,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChainConfig(HttpSecurity http) throws Exception {
         //customize security filter here
         http.authorizeHttpRequests(auth -> {
-            //welcome page
-            auth.requestMatchers("/").permitAll();
+            //allowed endpoints
+            auth.requestMatchers("/", "/index.html", "/resources/**").permitAll();
 
             //user security
             auth.requestMatchers(HttpMethod.GET, "/api/v1/users/**")
@@ -51,6 +51,10 @@ public class SecurityConfig {
 
             auth.requestMatchers(HttpMethod.DELETE, "/api/v1/users/**")
                     .hasAuthority(UserAuth.USER_DELETE.getName());
+
+            //auth security
+            auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/me")
+                    .hasAuthority(UserAuth.USER_PROFILE.getName());
 
             auth.anyRequest().authenticated();
         });

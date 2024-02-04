@@ -7,17 +7,22 @@ import com.vicheak.mbankingapi.api.auth.web.VerifyDto;
 import com.vicheak.mbankingapi.api.mail.Mail;
 import com.vicheak.mbankingapi.api.mail.MailService;
 import com.vicheak.mbankingapi.api.user.User;
+import com.vicheak.mbankingapi.api.user.UserMapper;
 import com.vicheak.mbankingapi.api.user.UserServiceImpl;
 import com.vicheak.mbankingapi.api.user.web.CreateUserDto;
+import com.vicheak.mbankingapi.api.user.web.UserDto;
+import com.vicheak.mbankingapi.security.CustomUserDetails;
 import com.vicheak.mbankingapi.util.RandomUtil;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -28,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthMapper authMapper;
     private final UserServiceImpl userService;
     private final MailService mailService;
+    private final UserMapper userMapper;
 
     @Value("${spring.mail.username}")
     private String adminMail;
@@ -112,6 +118,15 @@ public class AuthServiceImpl implements AuthService {
 
         //save account into database
         authRepository.save(authenticatedUser);
+    }
+
+    @Override
+    public UserDto viewProfile(Authentication authentication) {
+        if (Objects.nonNull(authentication)) {
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            return userMapper.fromUserToUserDto(customUserDetails.getUser());
+        }
+        return null;
     }
 
     private void buildMail(String email, String sixDigitCode) throws MessagingException {

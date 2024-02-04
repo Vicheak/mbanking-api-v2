@@ -95,6 +95,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void disableUserByUuid(String uuid) {
+        //check security context
+        checkSecurityContext();
+
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -123,6 +126,7 @@ public class UserServiceImpl implements UserService {
     public void checkSecurityContext() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
+        //allow admin and manager
         if (auth.getAuthorities().contains(RoleAuth.CUSTOMER.getRoleName()))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "This process is unauthorized! Permission denied!");

@@ -4,7 +4,9 @@ import com.vicheak.mbankingapi.api.auth.web.ChangePasswordDto;
 import com.vicheak.mbankingapi.api.auth.web.RegisterDto;
 import com.vicheak.mbankingapi.api.auth.web.SendVerifyDto;
 import com.vicheak.mbankingapi.api.auth.web.VerifyDto;
+import com.vicheak.mbankingapi.api.user.web.UserDto;
 import jakarta.mail.MessagingException;
+import org.springframework.security.core.Authentication;
 
 public interface AuthService {
 
@@ -31,5 +33,12 @@ public interface AuthService {
      * @param changePasswordDto is the request from client
      */
     void changePassword(ChangePasswordDto changePasswordDto);
+
+    /**
+     * This method is used to retrieve the logged in customer profile
+     * @param authentication is the auth request from client
+     * @return UserDto
+     */
+    UserDto viewProfile(Authentication authentication);
 
 }
