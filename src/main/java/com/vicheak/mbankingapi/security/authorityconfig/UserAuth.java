@@ -10,7 +10,8 @@ public enum UserAuth {
     USER_READ("user:read"),
     USER_WRITE("user:write"),
     USER_UPDATE("user:update"),
-    USER_DELETE("user:delete");
+    USER_DELETE("user:delete"),
+    USER_PROFILE("user:profile");
 
     private final String name;
 }

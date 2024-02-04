@@ -2,8 +2,12 @@
 server:
   port: 9090
 
-# configure data source and jpa
+# configure servlet context path
+  servlet:
+    context-path: /
+
 spring:
+  # configure data source and jpa
   datasource:
     driver-class-name: org.postgresql.Driver
     username: mbankingpostgres
@@ -32,3 +36,8 @@ spring:
 #    user:
 #      name: admin
 #      password: admin@123
+
+# configure classpath resources
+resource:
+  server-path: /static/
+  client-path: /resources/**

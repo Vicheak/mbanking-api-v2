@@ -6,6 +6,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -58,7 +59,7 @@ public class AuthController {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/change-password")
-    public BaseApi<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto){
+    public BaseApi<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
         authService.changePassword(changePasswordDto);
         return BaseApi.builder()
                 .isSuccess(true)
@@ -66,6 +67,18 @@ public class AuthController {
                 .code(HttpStatus.OK.value())
                 .timestamp(LocalDateTime.now())
                 .payload("Now you can use your password to login!")
+                .build();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/me")
+    public BaseApi<Object> viewProfile(Authentication authentication) {
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("Profile loaded successfully!")
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload(authService.viewProfile(authentication))
                 .build();
     }
 
