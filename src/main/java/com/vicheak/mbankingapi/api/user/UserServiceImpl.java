@@ -5,9 +5,12 @@ import com.vicheak.mbankingapi.api.authority.RoleRepository;
 import com.vicheak.mbankingapi.api.user.web.CreateUserDto;
 import com.vicheak.mbankingapi.api.user.web.UpdateUserDto;
 import com.vicheak.mbankingapi.api.user.web.UserDto;
+import com.vicheak.mbankingapi.security.authorityconfig.RoleAuth;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -60,7 +63,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void updateUserByUuid(String uuid, UpdateUserDto updateUserDto) {
-        //update checking security context
+        //check security context
+        checkSecurityContext();
 
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(
@@ -70,8 +74,8 @@ public class UserServiceImpl implements UserService {
                 );
 
         //check if username conflicts resources in the system
-        if(!updateUserDto.username().equalsIgnoreCase(user.getUsername()))
-            if(userRepository.existsByUsernameIgnoreCase(updateUserDto.username()))
+        if (!updateUserDto.username().equalsIgnoreCase(user.getUsername()))
+            if (userRepository.existsByUsernameIgnoreCase(updateUserDto.username()))
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "Username conflicts resources in the system!");
 
@@ -114,6 +118,14 @@ public class UserServiceImpl implements UserService {
                 );
 
         userRepository.delete(user);
+    }
+
+    public void checkSecurityContext() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth.getAuthorities().contains(RoleAuth.CUSTOMER.getRoleName()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "This process is unauthorized! Permission denied!");
     }
 
     public void checkValidRoles(Set<Integer> roleIds) {
