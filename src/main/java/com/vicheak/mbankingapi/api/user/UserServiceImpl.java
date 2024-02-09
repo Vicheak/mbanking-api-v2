@@ -5,9 +5,11 @@ import com.vicheak.mbankingapi.api.authority.RoleRepository;
 import com.vicheak.mbankingapi.api.user.web.CreateUserDto;
 import com.vicheak.mbankingapi.api.user.web.UpdateUserDto;
 import com.vicheak.mbankingapi.api.user.web.UserDto;
+import com.vicheak.mbankingapi.security.CustomUserDetails;
 import com.vicheak.mbankingapi.security.authorityconfig.RoleAuth;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -64,7 +67,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUserByUuid(String uuid, UpdateUserDto updateUserDto) {
         //check security context
-        checkSecurityContext();
+        if (!checkSecurityContextControl())
+            checkSecurityContextUpdate(uuid);
 
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(
@@ -79,17 +83,24 @@ public class UserServiceImpl implements UserService {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "Username conflicts resources in the system!");
 
-        //check if all roles are valid roles in the system
-        checkValidRoles(updateUserDto.roleIds());
+        //check security context
+        if (checkSecurityContextControl()) {
+            //check if all roles are valid roles in the system
+            checkValidRoles(updateUserDto.roleIds());
 
-        userMapper.fromUpdateUserDtoToUser(user, updateUserDto);
+            userMapper.fromUpdateUserDtoToUser(user, updateUserDto);
 
-        userRepository.save(user);
+            userRepository.save(user);
 
-        userRoleRepository.deleteAll(user.getUserRoles());
+            userRoleRepository.deleteAll(user.getUserRoles());
 
-        //set up user roles
-        setUpUserRoles(updateUserDto.roleIds(), user);
+            //set up user roles
+            setUpUserRoles(updateUserDto.roleIds(), user);
+        } else {
+            //allowed customer
+            userMapper.fromUpdateUserDtoToUser(user, updateUserDto);
+            userRepository.save(user);
+        }
     }
 
     @Transactional
@@ -121,6 +132,21 @@ public class UserServiceImpl implements UserService {
                 );
 
         userRepository.delete(user);
+    }
+
+    public boolean checkSecurityContextControl() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getAuthorities().contains(RoleAuth.ADMIN.getRoleName()) ||
+                auth.getAuthorities().contains(RoleAuth.MANAGER.getRoleName());
+    }
+
+    public void checkSecurityContextUpdate(String uuid) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
+
+        if (!customUserDetails.getUser().getUuid().equals(uuid))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "Permission denied!");
     }
 
     public void checkSecurityContext() {
