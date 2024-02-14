@@ -68,7 +68,9 @@ public class UserServiceImpl implements UserService {
     public void updateUserByUuid(String uuid, UpdateUserDto updateUserDto) {
         //check security context
         if (!checkSecurityContextControl())
-            checkSecurityContextUpdate(uuid);
+            if (!checkSecurityContextUpdate(uuid))
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "Permission denied!");
 
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(
@@ -109,6 +111,10 @@ public class UserServiceImpl implements UserService {
         //check security context
         checkSecurityContext();
 
+        if (checkSecurityContextUpdate(uuid))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "You cannot proceed this action! Permission denied!");
+
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -124,6 +130,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void deleteUserByUuid(String uuid) {
+        if (checkSecurityContextUpdate(uuid))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "You cannot proceed this action! Permission denied!");
+
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -140,13 +150,11 @@ public class UserServiceImpl implements UserService {
                 auth.getAuthorities().contains(RoleAuth.MANAGER.getRoleName());
     }
 
-    public void checkSecurityContextUpdate(String uuid) {
+    public boolean checkSecurityContextUpdate(String uuid) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
 
-        if (!customUserDetails.getUser().getUuid().equals(uuid))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Permission denied!");
+        return customUserDetails.getUser().getUuid().equals(uuid);
     }
 
     public void checkSecurityContext() {

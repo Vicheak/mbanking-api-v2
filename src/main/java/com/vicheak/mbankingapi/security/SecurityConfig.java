@@ -56,6 +56,8 @@ public class SecurityConfig {
             auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/me")
                     .hasAuthority(UserAuth.USER_PROFILE.getName());
 
+            auth.requestMatchers("/api/v1/auth/**").permitAll();
+
             auth.anyRequest().authenticated();
         });
 
