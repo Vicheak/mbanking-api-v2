@@ -58,6 +58,19 @@ public class AuthController {
     }
 
     @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/login")
+    public BaseApi<?> login(@RequestBody @Valid LoginDto loginDto) {
+        authService.login(loginDto);
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("You have successfully logged in!")
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload("Logged in successfully!")
+                .build();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
     @PutMapping("/change-password")
     public BaseApi<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
         authService.changePassword(changePasswordDto);
