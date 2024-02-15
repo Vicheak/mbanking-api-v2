@@ -1,9 +1,6 @@
 package com.vicheak.mbankingapi.api.auth;
 
-import com.vicheak.mbankingapi.api.auth.web.ChangePasswordDto;
-import com.vicheak.mbankingapi.api.auth.web.RegisterDto;
-import com.vicheak.mbankingapi.api.auth.web.SendVerifyDto;
-import com.vicheak.mbankingapi.api.auth.web.VerifyDto;
+import com.vicheak.mbankingapi.api.auth.web.*;
 import com.vicheak.mbankingapi.api.user.web.UserDto;
 import jakarta.mail.MessagingException;
 import org.springframework.security.core.Authentication;
@@ -27,6 +24,12 @@ public interface AuthService {
      * @param verifyDto is the request from client
      */
     void verify(VerifyDto verifyDto);
+
+    /**
+     * This method is used to log in a customer from client application
+     * @param loginDto is the request from client
+     */
+    void login(LoginDto loginDto);
 
     /**
      * This method is used to change user password by specifying the previous password

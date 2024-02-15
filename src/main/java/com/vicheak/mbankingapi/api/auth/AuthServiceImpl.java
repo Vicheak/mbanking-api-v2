@@ -1,9 +1,6 @@
 package com.vicheak.mbankingapi.api.auth;
 
-import com.vicheak.mbankingapi.api.auth.web.ChangePasswordDto;
-import com.vicheak.mbankingapi.api.auth.web.RegisterDto;
-import com.vicheak.mbankingapi.api.auth.web.SendVerifyDto;
-import com.vicheak.mbankingapi.api.auth.web.VerifyDto;
+import com.vicheak.mbankingapi.api.auth.web.*;
 import com.vicheak.mbankingapi.api.mail.Mail;
 import com.vicheak.mbankingapi.api.mail.MailService;
 import com.vicheak.mbankingapi.api.user.User;
@@ -18,7 +15,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final MailService mailService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationProvider authenticationProvider;
 
     @Value("${spring.mail.username}")
     private String adminMail;
@@ -107,25 +108,31 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     @Override
+    public void login(LoginDto loginDto) {
+        Authentication auth = new UsernamePasswordAuthenticationToken(loginDto.username(), loginDto.password());
+        //authenticate with authentication provider bean
+        auth = authenticationProvider.authenticate(auth);
+    }
+
+    @Transactional
+    @Override
     public void changePassword(ChangePasswordDto changePasswordDto) {
-        //load user by email
-        //...
+        //check if auth user matches with the email
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
+        User authUser = customUserDetails.getUser();
 
         //check if the old password matches with the encrypted password
-        //...
+        if (!authUser.getEmail().equals(changePasswordDto.email()) ||
+                !passwordEncoder.matches(changePasswordDto.oldPassword(), authUser.getPassword()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "Failed to change account password!");
 
-        //check if the email and password are both valid
-        User authenticatedUser = authRepository.findByEmailAndPassword(
-                        changePasswordDto.email(), changePasswordDto.oldPassword())
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                                "Failed to change account password!")
-                );
-
-        authenticatedUser.setPassword(changePasswordDto.newPassword());
+        //encrypt a new password and update to the database
+        authUser.setPassword(passwordEncoder.encode(changePasswordDto.newPassword()));
 
         //save account into database
-        authRepository.save(authenticatedUser);
+        authRepository.save(authUser);
     }
 
     @Override
