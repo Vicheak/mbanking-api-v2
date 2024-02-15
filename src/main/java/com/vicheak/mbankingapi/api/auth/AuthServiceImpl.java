@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -34,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserServiceImpl userService;
     private final MailService mailService;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${spring.mail.username}")
     private String adminMail;
@@ -106,6 +108,12 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void changePassword(ChangePasswordDto changePasswordDto) {
+        //load user by email
+        //...
+
+        //check if the old password matches with the encrypted password
+        //...
+
         //check if the email and password are both valid
         User authenticatedUser = authRepository.findByEmailAndPassword(
                         changePasswordDto.email(), changePasswordDto.oldPassword())
