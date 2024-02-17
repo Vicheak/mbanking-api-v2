@@ -37,7 +37,8 @@ public class SecurityConfig {
         //customize security filter here
         http.authorizeHttpRequests(auth -> {
             //allowed endpoints
-            auth.requestMatchers("/", "/index.html", "/resources/**").permitAll();
+            auth.requestMatchers("/", "/index.html", "/resources/**")
+                    .permitAll();
 
             //user security
             auth.requestMatchers(HttpMethod.GET, "/api/v1/users/**")
@@ -60,6 +61,9 @@ public class SecurityConfig {
                     .authenticated();
 
             auth.requestMatchers("/api/v1/auth/**").permitAll();
+
+            //account type security
+            auth.requestMatchers("/api/v1/account-types/**").authenticated();
 
             auth.anyRequest().authenticated();
         });

@@ -10,7 +10,7 @@ import java.util.List;
 public interface AccountService {
 
     /**
-     * This method is used to create new account resource into the system
+     * This method is used to create new account resource into the system from client app
      * @param createAccountDto is the request from client
      */
     void createNewAccount(CreateAccountDto createAccountDto);
