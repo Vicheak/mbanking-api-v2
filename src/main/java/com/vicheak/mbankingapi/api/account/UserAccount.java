@@ -1,6 +1,5 @@
 package com.vicheak.mbankingapi.api.account;
 
-import com.vicheak.mbankingapi.api.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,18 +16,8 @@ import java.time.LocalDateTime;
 @Table(name = "users_accounts")
 public class UserAccount {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_act_id")
-    private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "act_id")
-    private Account account;
+    @EmbeddedId
+    private UserAccountId id;
 
     @Column(name = "is_disabled", nullable = false)
     private Boolean isDisabled;

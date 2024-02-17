@@ -5,14 +5,11 @@ import com.vicheak.mbankingapi.api.authority.RoleRepository;
 import com.vicheak.mbankingapi.api.user.web.CreateUserDto;
 import com.vicheak.mbankingapi.api.user.web.UpdateUserDto;
 import com.vicheak.mbankingapi.api.user.web.UserDto;
-import com.vicheak.mbankingapi.security.CustomUserDetails;
-import com.vicheak.mbankingapi.security.authorityconfig.RoleAuth;
+import com.vicheak.mbankingapi.security.securitycheck.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,6 +26,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityUtil securityUtil;
 
     @Transactional
     @Override
@@ -67,8 +65,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUserByUuid(String uuid, UpdateUserDto updateUserDto) {
         //check security context
-        if (!checkSecurityContextControl())
-            if (!checkSecurityContextUpdate(uuid))
+        if (!securityUtil.checkSecurityContextControl())
+            if (!securityUtil.checkSecurityContextUpdate(uuid))
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                         "Permission denied!");
 
@@ -86,7 +84,7 @@ public class UserServiceImpl implements UserService {
                         "Username conflicts resources in the system!");
 
         //check security context
-        if (checkSecurityContextControl()) {
+        if (securityUtil.checkSecurityContextControl()) {
             //check if all roles are valid roles in the system
             checkValidRoles(updateUserDto.roleIds());
 
@@ -109,9 +107,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void disableUserByUuid(String uuid) {
         //check security context
-        checkSecurityContext();
+        securityUtil.checkSecurityContext();
 
-        if (checkSecurityContextUpdate(uuid))
+        if (securityUtil.checkSecurityContextUpdate(uuid))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "You cannot proceed this action! Permission denied!");
 
@@ -130,7 +128,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void deleteUserByUuid(String uuid) {
-        if (checkSecurityContextUpdate(uuid))
+        if (securityUtil.checkSecurityContextUpdate(uuid))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "You cannot proceed this action! Permission denied!");
 
@@ -142,28 +140,6 @@ public class UserServiceImpl implements UserService {
                 );
 
         userRepository.delete(user);
-    }
-
-    public boolean checkSecurityContextControl() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth.getAuthorities().contains(RoleAuth.ADMIN.getRoleName()) ||
-                auth.getAuthorities().contains(RoleAuth.MANAGER.getRoleName());
-    }
-
-    public boolean checkSecurityContextUpdate(String uuid) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
-
-        return customUserDetails.getUser().getUuid().equals(uuid);
-    }
-
-    public void checkSecurityContext() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        //allow admin and manager
-        if (auth.getAuthorities().contains(RoleAuth.CUSTOMER.getRoleName()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "This process is unauthorized! Permission denied!");
     }
 
     public void checkValidRoles(Set<Integer> roleIds) {
