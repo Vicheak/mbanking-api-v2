@@ -1,5 +1,6 @@
 package com.vicheak.mbankingapi.security;
 
+import com.vicheak.mbankingapi.security.authorityconfig.AccountAuth;
 import com.vicheak.mbankingapi.security.authorityconfig.UserAuth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -64,6 +65,13 @@ public class SecurityConfig {
 
             //account type security
             auth.requestMatchers("/api/v1/account-types/**").authenticated();
+
+            //account security
+            auth.requestMatchers(HttpMethod.GET, "/api/v1/accounts/**")
+                            .hasAuthority(AccountAuth.ACCOUNT_RAED.getName());
+
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/accounts/**")
+                            .hasAuthority(AccountAuth.ACCOUNT_WRITE.getName());
 
             auth.anyRequest().authenticated();
         });
