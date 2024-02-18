@@ -103,6 +103,8 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto loadAccountByUuid(String uuid) {
+        //@TODO : update right here...
+
         return accountMapper.fromAccountToAccountDto(accountRepository.queryAccountByNumber(uuid)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
