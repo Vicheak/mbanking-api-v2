@@ -89,7 +89,7 @@ public class AccountServiceImpl implements AccountService {
         List<Account> accounts = new ArrayList<>();
 
         //check for permissions to ban customer
-        if(!securityUtil.checkSecurityContextControl()){
+        if (!securityUtil.checkSecurityContextControl()) {
             Authentication auth = securityUtil.loadAuthenticationContext();
             CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
 
@@ -103,7 +103,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto loadAccountByUuid(String uuid) {
-        //@TODO : update right here...
+        //check for permissions to ban customer
+        if(!securityUtil.checkSecurityContextControl()){
+
+        }
 
         return accountMapper.fromAccountToAccountDto(accountRepository.queryAccountByNumber(uuid)
                 .orElseThrow(
