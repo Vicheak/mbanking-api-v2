@@ -68,10 +68,13 @@ public class SecurityConfig {
 
             //account security
             auth.requestMatchers(HttpMethod.GET, "/api/v1/accounts/**")
-                            .hasAuthority(AccountAuth.ACCOUNT_RAED.getName());
+                    .hasAuthority(AccountAuth.ACCOUNT_RAED.getName());
 
             auth.requestMatchers(HttpMethod.POST, "/api/v1/accounts/**")
-                            .hasAuthority(AccountAuth.ACCOUNT_WRITE.getName());
+                    .hasAuthority(AccountAuth.ACCOUNT_WRITE.getName());
+
+            auth.requestMatchers(HttpMethod.PUT, "/api/v1/accounts/**")
+                    .hasAuthority(AccountAuth.ACCOUNT_UPDATE.getName());
 
             auth.anyRequest().authenticated();
         });

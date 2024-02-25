@@ -10,7 +10,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -54,6 +53,13 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     @Override
     public void renameAccountByUuid(String uuid, RenameAccountDto renameAccountDto) {
+        //check permissions for customer
+        if (!securityUtil.checkSecurityContextControl()) {
+            if (checkNoneAccountNumber(uuid))
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "This process is unauthorized! Permission denied!");
+        }
+
         //load account by uuid
         Account account = accountRepository.queryAccountByNumber(uuid)
                 .orElseThrow(
@@ -89,7 +95,7 @@ public class AccountServiceImpl implements AccountService {
         List<Account> accounts = new ArrayList<>();
 
         //check for permissions to ban customer
-        if(!securityUtil.checkSecurityContextControl()){
+        if (!securityUtil.checkSecurityContextControl()) {
             Authentication auth = securityUtil.loadAuthenticationContext();
             CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
 
@@ -103,7 +109,12 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto loadAccountByUuid(String uuid) {
-        //@TODO : update right here...
+        //check for permissions to ban customer
+        if (!securityUtil.checkSecurityContextControl()) {
+            if (checkNoneAccountNumber(uuid))
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "This process is unauthorized! Permission denied!");
+        }
 
         return accountMapper.fromAccountToAccountDto(accountRepository.queryAccountByNumber(uuid)
                 .orElseThrow(
@@ -111,6 +122,15 @@ public class AccountServiceImpl implements AccountService {
                                 "Account with uuid, %s has not been found in the system!"
                                         .formatted(uuid))
                 ));
+    }
+
+    private boolean checkNoneAccountNumber(String uuid) {
+        Authentication auth = securityUtil.loadAuthenticationContext();
+        CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
+
+        List<UserAccount> userAccounts = userAccountRepository.findByIdUser(customUserDetails.getUser());
+        return userAccounts.stream()
+                .noneMatch(userAccount -> userAccount.getId().getAccount().getNumber().equals(uuid));
     }
 
     private void setupUserAccounts(Account account) {
