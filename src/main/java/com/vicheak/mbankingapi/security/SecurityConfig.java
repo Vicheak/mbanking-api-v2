@@ -38,7 +38,9 @@ public class SecurityConfig {
         //customize security filter here
         http.authorizeHttpRequests(auth -> {
             //allowed endpoints
-            auth.requestMatchers("/", "/index.html", "/resources/**")
+            auth.requestMatchers("/",
+                            "/index.html",
+                            "/resources/**")
                     .permitAll();
 
             //user security

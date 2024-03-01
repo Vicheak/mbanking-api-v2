@@ -1,14 +1,24 @@
 package com.vicheak.mbankingapi.init;
 
+import com.vicheak.mbankingapi.api.account.AccountType;
+import com.vicheak.mbankingapi.api.account.AccountTypeRepository;
 import com.vicheak.mbankingapi.api.authority.Authority;
 import com.vicheak.mbankingapi.api.authority.AuthorityRepository;
 import com.vicheak.mbankingapi.api.authority.Role;
 import com.vicheak.mbankingapi.api.authority.RoleRepository;
+import com.vicheak.mbankingapi.api.user.User;
+import com.vicheak.mbankingapi.api.user.UserRepository;
+import com.vicheak.mbankingapi.api.user.UserRole;
+import com.vicheak.mbankingapi.api.user.UserRoleRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -16,9 +26,18 @@ public class DataInit {
 
     private final AuthorityRepository authorityRepository;
     private final RoleRepository roleRepository;
+    private final AccountTypeRepository accountTypeRepository;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    //@PostConstruct
+    @PostConstruct
     public void init() {
+        //check if there's already a construction
+        if (!authorityRepository.findAll().isEmpty()) return;
+        if (!roleRepository.findAll().isEmpty()) return;
+        if (!accountTypeRepository.findAll().isEmpty()) return;
+
         //authorities
         Authority userRead = Authority.builder()
                 .name("user:read")
@@ -106,6 +125,81 @@ public class DataInit {
 
         authorityRepository.saveAll(fullAuthorities);
         roleRepository.saveAll(List.of(adminRole, managerRole, customerRole));
+
+        //generate sample data
+        //account types
+        AccountType checkingAcc = AccountType.builder()
+                .name("Checking Account")
+                .build();
+
+        AccountType savingAcc = AccountType.builder()
+                .name("Saving Account")
+                .build();
+
+        AccountType moneyMarketAcc = AccountType.builder()
+                .name("Money Market Account")
+                .build();
+
+        accountTypeRepository.saveAll(
+                new ArrayList<>(List.of(checkingAcc, savingAcc, moneyMarketAcc)));
+
+        //users
+        User adminUser = User.builder()
+                .email("admin@gmail.com")
+                .gender("male")
+                .isDeleted(false)
+                .isVerified(true)
+                .password(passwordEncoder.encode("12345678"))
+                .phoneNumber("089434243")
+                .username("admin")
+                .uuid(UUID.randomUUID().toString())
+                .build();
+
+        User managerUser = User.builder()
+                .email("manager@gmail.com")
+                .gender("male")
+                .isDeleted(false)
+                .isVerified(true)
+                .password(passwordEncoder.encode("12345678"))
+                .phoneNumber("089434248")
+                .username("manager")
+                .uuid(UUID.randomUUID().toString())
+                .build();
+
+        User customerUser = User.builder()
+                .email("customer@gmail.com")
+                .gender("male")
+                .isDeleted(false)
+                .isVerified(true)
+                .password(passwordEncoder.encode("12345678"))
+                .phoneNumber("089434246")
+                .username("customer")
+                .uuid(UUID.randomUUID().toString())
+                .build();
+
+        userRepository.saveAll(
+                new ArrayList<>(List.of(adminUser, managerUser, customerUser)));
+
+        //user roles
+        UserRole adminUserRole = UserRole.builder()
+                .user(adminUser)
+                .role(adminRole)
+                .build();
+
+
+        UserRole managerUserRole = UserRole.builder()
+                .user(managerUser)
+                .role(managerRole)
+                .build();
+
+
+        UserRole customerUserRole = UserRole.builder()
+                .user(customerUser)
+                .role(customerRole)
+                .build();
+
+        userRoleRepository.saveAll(
+                new ArrayList<>(List.of(adminUserRole, managerUserRole, customerUserRole)));
     }
 
 }

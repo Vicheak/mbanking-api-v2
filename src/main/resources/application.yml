@@ -7,7 +7,7 @@ server:
     context-path: /
 
 spring:
-  # configure data source and jpa
+# configure data source and jpa
   datasource:
     driver-class-name: org.postgresql.Driver
     username: mbankingpostgres
@@ -31,13 +31,17 @@ spring:
           starttls:
             enable: true
 
-# configure spring security
-#  security:
-#    user:
-#      name: admin
-#      password: admin@123
+# configure liquibase
+  liquibase:
+    enabled: false
+    change-log: classpath:db/changelog/db.changelog-master.yaml
 
 # configure classpath resources
 resource:
   server-path: /static/
   client-path: /resources/**
+
+# configure swagger-ui custom path
+springdoc:
+  swagger-ui:
+    path: /docs
