@@ -29,7 +29,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         CustomUserDetails customUserDetails = new CustomUserDetails();
         customUserDetails.setUser(authenticatedUser);
 
-        log.info("Auth Authorities : {}", customUserDetails.getAuthorities());
+//        log.info("Auth Authorities : {}", customUserDetails.getAuthorities());
 
         return customUserDetails;
     }

@@ -1,5 +1,6 @@
 package com.vicheak.mbankingapi.api.user.web;
 
+import com.vicheak.mbankingapi.api.account.AccountService;
 import com.vicheak.mbankingapi.api.user.UserService;
 import com.vicheak.mbankingapi.base.BaseApi;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 public class UserController {
 
     private final UserService userService;
+    private final AccountService accountService;
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
@@ -63,6 +65,31 @@ public class UserController {
     @DeleteMapping("/{uuid}")
     public void deleteUserByUuid(@PathVariable String uuid) {
         userService.deleteUserByUuid(uuid);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{uuid}/accounts")
+    public BaseApi<?> loadUserAccountsByUuid(@PathVariable String uuid) {
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("Accounts of user, " + userService.loadUserByUuid(uuid).username())
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload(accountService.loadUserAccountsByUuid(uuid))
+                .build();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{userUuid}/accounts/{accountUuid}")
+    public BaseApi<?> loadUserAccountByUuid(@PathVariable String userUuid,
+                                            @PathVariable String accountUuid) {
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("Accounts of user, " + userService.loadUserByUuid(userUuid).username())
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload(accountService.loadUserAccountByUuid(userUuid, accountUuid))
+                .build();
     }
 
 }

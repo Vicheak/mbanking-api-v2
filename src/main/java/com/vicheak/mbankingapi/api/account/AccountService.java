@@ -1,9 +1,6 @@
 package com.vicheak.mbankingapi.api.account;
 
-import com.vicheak.mbankingapi.api.account.web.AccountDto;
-import com.vicheak.mbankingapi.api.account.web.CreateAccountDto;
-import com.vicheak.mbankingapi.api.account.web.RenameAccountDto;
-import com.vicheak.mbankingapi.api.account.web.TransferLimitAccountDto;
+import com.vicheak.mbankingapi.api.account.web.*;
 
 import java.util.List;
 
@@ -41,5 +38,26 @@ public interface AccountService {
      * @return AccountDto
      */
     AccountDto loadAccountByUuid(String uuid);
+
+    /**
+     * This method is used to close specific account by uuid
+     * @param uuid is the path parameter from client
+     */
+    void closeAccountByUuid(String uuid);
+
+    /**
+     * This method is used to retrieve all accounts of user uuid
+     * @param userUuid is the path parameter from client
+     * @return List<AccountDetailDto>
+     */
+    List<AccountDetailDto> loadUserAccountsByUuid(String userUuid);
+
+    /**
+     * This method is used to retrieve an account by uuid of user uuid
+     * @param userUuid is the path parameter from client
+     * @param accountUuid is the path parameter from client
+     * @return AccountDetailDto
+     */
+    AccountDetailDto loadUserAccountByUuid(String userUuid, String accountUuid);
 
 }

@@ -1,13 +1,11 @@
 package com.vicheak.mbankingapi.api.account;
 
-import com.vicheak.mbankingapi.api.account.web.AccountDto;
-import com.vicheak.mbankingapi.api.account.web.CreateAccountDto;
-import com.vicheak.mbankingapi.api.account.web.RenameAccountDto;
-import com.vicheak.mbankingapi.api.account.web.TransferLimitAccountDto;
+import com.vicheak.mbankingapi.api.account.web.*;
 import com.vicheak.mbankingapi.security.CustomUserDetails;
 import com.vicheak.mbankingapi.security.securitycheck.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +20,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
@@ -77,6 +76,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void updateTransferLimitByUuid(String uuid, TransferLimitAccountDto transferLimitAccountDto) {
         //load account by uuid
+        if (!securityUtil.checkSecurityContextControl()) {
+            if (checkNoneAccountNumber(uuid))
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "This process is unauthorized! Permission denied!");
+        }
+
         Account account = accountRepository.queryAccountByNumber(uuid)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -122,6 +127,49 @@ public class AccountServiceImpl implements AccountService {
                                 "Account with uuid, %s has not been found in the system!"
                                         .formatted(uuid))
                 ));
+    }
+
+    @Transactional
+    @Override
+    public void closeAccountByUuid(String uuid) {
+        //check for permissions to ban customer
+        if (!securityUtil.checkSecurityContextControl())
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "Permission denied!");
+
+        List<UserAccount> userAccounts = userAccountRepository.findByIdAccountNumber(uuid);
+        UserAccount userAccount = userAccounts.getFirst();
+        userAccount.setIsDisabled(true);
+
+        userAccountRepository.save(userAccount);
+    }
+
+    @Override
+    public List<AccountDetailDto> loadUserAccountsByUuid(String userUuid) {
+        List<AccountDetailDto> accountDetailDtoList = new ArrayList<>();
+
+        List<UserAccount> userAccounts = userAccountRepository.findByIdUserUuid(userUuid);
+
+        userAccounts.forEach(userAccount -> {
+            AccountDetailDto accountDetailDto = accountMapper.fromAccountToAccountDetailDto(userAccount.getId().getAccount());
+            accountDetailDto.setIsDisabled(userAccount.getIsDisabled());
+            accountDetailDtoList.add(accountDetailDto);
+        });
+
+        return accountDetailDtoList;
+    }
+
+    @Override
+    public AccountDetailDto loadUserAccountByUuid(String userUuid, String accountUuid) {
+        UserAccount userAccount = userAccountRepository.findByIdUserUuidAndIdAccountNumber(userUuid, accountUuid)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "User with uuid, %s, and account uuid, %s have not been found in the system!"
+                                        .formatted(userUuid, accountUuid))
+                );
+        AccountDetailDto accountDetailDto = accountMapper.fromAccountToAccountDetailDto(userAccount.getId().getAccount());
+        accountDetailDto.setIsDisabled(userAccount.getIsDisabled());
+        return accountDetailDto;
     }
 
     private boolean checkNoneAccountNumber(String uuid) {

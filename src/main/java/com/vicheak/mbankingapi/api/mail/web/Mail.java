@@ -1,4 +1,4 @@
-package com.vicheak.mbankingapi.api.mail;
+package com.vicheak.mbankingapi.api.mail.web;
 
 import lombok.Data;
 

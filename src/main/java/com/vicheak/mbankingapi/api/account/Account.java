@@ -31,6 +31,9 @@ public class Account {
     @Column(name = "act_transfer_limit", nullable = false)
     private BigDecimal transferLimit;
 
+    @Column(name = "act_amount")
+    private BigDecimal amount;
+
     @ManyToOne
     @JoinColumn(name = "act_type_id", nullable = false)
     private AccountType accountType;

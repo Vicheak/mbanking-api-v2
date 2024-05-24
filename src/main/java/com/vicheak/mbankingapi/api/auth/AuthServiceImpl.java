@@ -1,7 +1,7 @@
 package com.vicheak.mbankingapi.api.auth;
 
 import com.vicheak.mbankingapi.api.auth.web.*;
-import com.vicheak.mbankingapi.api.mail.Mail;
+import com.vicheak.mbankingapi.api.mail.web.Mail;
 import com.vicheak.mbankingapi.api.mail.MailService;
 import com.vicheak.mbankingapi.api.user.User;
 import com.vicheak.mbankingapi.api.user.UserMapper;

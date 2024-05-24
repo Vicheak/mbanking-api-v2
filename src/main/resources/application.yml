@@ -1,6 +1,6 @@
 # configure server port
 server:
-  port: 9090
+  port: 8080
 
 # configure servlet context path
   servlet:
@@ -10,8 +10,8 @@ spring:
 # configure data source and jpa
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: mbankingpostgres
-    password: mbankingpostgres@123
+    username: sbdemo
+    password: sbdemo@123
     url: jdbc:postgresql://localhost:5432/mbankingdb
   jpa:
     open-in-view: false
