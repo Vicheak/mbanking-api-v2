@@ -1,6 +1,7 @@
 package com.vicheak.mbankingapi.security;
 
 import com.vicheak.mbankingapi.security.authorityconfig.AccountAuth;
+import com.vicheak.mbankingapi.security.authorityconfig.TransactionAuth;
 import com.vicheak.mbankingapi.security.authorityconfig.UserAuth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -77,6 +78,13 @@ public class SecurityConfig {
 
             auth.requestMatchers(HttpMethod.PUT, "/api/v1/accounts/**")
                     .hasAuthority(AccountAuth.ACCOUNT_UPDATE.getName());
+
+            //transaction security
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/transactions/**")
+                    .hasAuthority(TransactionAuth.TRANSACTION_WRITE.getName());
+
+            auth.requestMatchers(HttpMethod.GET, "/api/v1/transactions/**")
+                    .hasAuthority(TransactionAuth.TRANSACTION_READ.getName());
 
             auth.anyRequest().authenticated();
         });

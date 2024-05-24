@@ -18,27 +18,27 @@ public class AccountController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public void createNewAccount(@RequestBody @Valid CreateAccountDto createAccountDto){
+    public void createNewAccount(@RequestBody @Valid CreateAccountDto createAccountDto) {
         accountService.createNewAccount(createAccountDto);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/{uuid}/rename")
     public void renameAccountByUuid(@PathVariable String uuid,
-                                    @RequestBody @Valid RenameAccountDto renameAccountDto){
+                                    @RequestBody @Valid RenameAccountDto renameAccountDto) {
         accountService.renameAccountByUuid(uuid, renameAccountDto);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/{uuid}/limit-transfer")
     public void updateTransferLimitByUuid(@PathVariable String uuid,
-                                          @RequestBody @Valid TransferLimitAccountDto transferLimitAccountDto){
+                                          @RequestBody @Valid TransferLimitAccountDto transferLimitAccountDto) {
         accountService.updateTransferLimitByUuid(uuid, transferLimitAccountDto);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public BaseApi<?> loadAllAccounts(){
+    public BaseApi<?> loadAllAccounts() {
         return BaseApi.builder()
                 .isSuccess(true)
                 .message("Accounts loaded successfully!")
@@ -50,13 +50,27 @@ public class AccountController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{uuid}")
-    public BaseApi<?> loadAccountByUuid(@PathVariable String uuid){
+    public BaseApi<?> loadAccountByUuid(@PathVariable String uuid) {
         return BaseApi.builder()
                 .isSuccess(true)
                 .message("Account loaded successfully!")
                 .code(HttpStatus.OK.value())
                 .timestamp(LocalDateTime.now())
                 .payload(accountService.loadAccountByUuid(uuid))
+                .build();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PutMapping("/{uuid}/close")
+    public BaseApi<?> closeAccountByUuid(@PathVariable String uuid) {
+        accountService.closeAccountByUuid(uuid);
+        return BaseApi.builder()
+                .isSuccess(true)
+                .message("Account closed successfully!")
+                .code(HttpStatus.OK.value())
+                .timestamp(LocalDateTime.now())
+                .payload("You have already closed the account with uuid, %s!"
+                        .formatted(uuid))
                 .build();
     }
 

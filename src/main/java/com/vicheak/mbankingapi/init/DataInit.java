@@ -186,12 +186,10 @@ public class DataInit {
                 .role(adminRole)
                 .build();
 
-
         UserRole managerUserRole = UserRole.builder()
                 .user(managerUser)
                 .role(managerRole)
                 .build();
-
 
         UserRole customerUserRole = UserRole.builder()
                 .user(customerUser)

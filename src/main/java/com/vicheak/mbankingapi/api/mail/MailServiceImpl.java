@@ -1,5 +1,6 @@
 package com.vicheak.mbankingapi.api.mail;
 
+import com.vicheak.mbankingapi.api.mail.web.Mail;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
