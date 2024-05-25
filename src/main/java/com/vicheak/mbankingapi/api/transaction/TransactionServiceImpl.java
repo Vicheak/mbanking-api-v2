@@ -68,6 +68,12 @@ public class TransactionServiceImpl implements TransactionService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Insufficient amount! Transaction cannot be completed!");
 
+        //check sender account transfer limit
+        if (!transactionDto.isPayment() && (transactionDto.amount().doubleValue() > senderAccount.getTransferLimit().doubleValue()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "You cannot transfer amount over account limit transfer, %.2f$"
+                            .formatted(senderAccount.getTransferLimit().doubleValue()));
+
         //perform transaction on sender and receiver account
         senderAccount.setAmount(transactionAmount.subtract(transactionDto.amount()));
         BigDecimal receiverAmount = Objects.isNull(receiverAccount.getAmount()) ?
